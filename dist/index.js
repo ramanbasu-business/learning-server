@@ -6,15 +6,20 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.wssNotification = exports.wssChat = void 0;
 const express_1 = __importDefault(require("express"));
 const http_1 = __importDefault(require("http"));
+const cors_1 = __importDefault(require("cors"));
 const ws_1 = require("ws");
 const userRoutes_1 = __importDefault(require("./routes/userRoutes"));
 const env_1 = require("./config/env");
 const app = (0, express_1.default)();
 const server = http_1.default.createServer(app);
+app.use((0, cors_1.default)({ origin: env_1.ENV.CORS_ORIGIN }));
 app.use(express_1.default.json());
 app.use("/api/users", userRoutes_1.default);
 app.get("/api/hello", (_req, res) => {
     res.json({ message: "Hello from server!" });
+});
+app.get("/api/health", (_req, res) => {
+    res.json({ status: "ok" });
 });
 exports.wssChat = new ws_1.WebSocketServer({ noServer: true });
 exports.wssNotification = new ws_1.WebSocketServer({ noServer: true });

@@ -1,5 +1,6 @@
 import express from "express";
 import http from "http";
+import cors from "cors";
 import { WebSocket, WebSocketServer } from "ws";
 import userRoutes from "./routes/userRoutes";
 import { ENV } from "./config/env";
@@ -7,11 +8,16 @@ import { ENV } from "./config/env";
 const app = express();
 const server = http.createServer(app);
 
+app.use(cors({ origin: ENV.CORS_ORIGIN }));
 app.use(express.json());
 app.use("/api/users", userRoutes);
 
 app.get("/api/hello", (_req: express.Request, res: express.Response) => {
     res.json({ message: "Hello from server!" });
+});
+
+app.get("/api/health", (_req: express.Request, res: express.Response) => {
+    res.json({ status: "ok" });
 });
 
 export const wssChat = new WebSocketServer({ noServer: true });
