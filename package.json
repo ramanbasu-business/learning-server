@@ -15,11 +15,12 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@learning/shared": "git+https://github.com/ramanbasu-business/learning-shared.git#develop",
     "amqplib": "^2.0.1",
+    "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
-    "@learning/shared": "git+https://github.com/ramanbasu-business/learning-shared.git#develop",
     "pg": "^8.21.0",
     "socket.io": "^4.8.3",
     "ws": "^8.20.1"

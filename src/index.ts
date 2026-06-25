@@ -8,7 +8,18 @@ import { ENV } from "./config/env";
 const app = express();
 const server = http.createServer(app);
 
-app.use(cors({ origin: ENV.CORS_ORIGIN }));
+let corsOrigin: string | RegExp | boolean = true;
+if (ENV.CORS_ORIGIN) {
+  if (ENV.CORS_ORIGIN.includes('*')) {
+    corsOrigin = /^http:\/\/localhost:\d+$/;
+  } else if (ENV.CORS_ORIGIN.includes('localhost')) {
+    corsOrigin = /^http:\/\/localhost:\d+$/;
+  } else {
+    corsOrigin = ENV.CORS_ORIGIN;
+  }
+}
+
+app.use(cors({ origin: corsOrigin, credentials: true }));
 app.use(express.json());
 app.use("/api/users", userRoutes);
 
