@@ -1,72 +1,81 @@
-import { exec } from 'child_process';
-import executeQuery from '../db';
-import bcrypt from 'bcryptjs';
+import { coreApiClient } from '../clients/coreApiClient';
+import { UserDto, UserResponse, RoleResponse } from '../types/dtos';
 
-// Define a type for your table
-interface User {
-    id: number;
-    name: string;
-    email: string;
-    password_hash: string;
-    created_on: Date;
+async function getUsers(): Promise<UserDto[]> {
+    const users = await coreApiClient.get<UserResponse[]>('/api/users');
+    return users.map(user => ({
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        name: user.name,
+        roles: []
+    }));
 }
 
-async function getUsers(): Promise<User[]> {
-    const result = await executeQuery<User>('SELECT * FROM public.users');
-    return result.rows;
-}
-
-// Login authentication
-async function getUserByLogin(username: string, password: string): Promise<User | null> {
-    
-    let user: User | null = null;
-
+async function getUserByLogin(username: string, password: string): Promise<UserDto | null> {
     try {
-        const result = await executeQuery<User>('SELECT * FROM public.users WHERE email = $1',
-            [username]
-        );
+        const user = await coreApiClient.post<UserResponse>('/api/users/auth', {
+            username,
+            password
+        });
 
-        console.log('user found for:', username);  // add this
-
-        if (!result || !result.rows.length) {
-            console.log('No user found for:', username);  // add this
+        if (!user) {
             return null;
         }
 
-        user = result.rows[0];
-        const password_hash = String(user["password_hash"]);
-
-        const isValid = bcrypt.compareSync(password, password_hash);
-        console.log(`isValid Login  -> ${isValid}`);
-        if (!isValid)
-            return null;
-        
+        const userWithRoles = await getUserWithRoles(user.id);
+        return userWithRoles;
     } catch (err) {
-        console.log(`Error Login: ${err}`);
+        console.error(`Error during login: ${err}`);
+        return null;
     }
-
-    console.log('user', user);  // add this
-    return user;
 }
 
-async function getUserById(id: number) {
-    const result = await executeQuery<User>('SELECT * FROM users WHERE id = $1', [id]);
-    return result.rows[0];
+async function getUserById(id: string): Promise<UserDto | null> {
+    try {
+        const userWithRoles = await getUserWithRoles(id);
+        return userWithRoles;
+    } catch (err) {
+        console.error(`Error fetching user: ${err}`);
+        return null;
+    }
 }
 
-// Create new user
-async function createUser(name:string, email:string) {
-    const res = await executeQuery<User>(
-        'INSERT INTO users (name, email) VALUES ($1, $2) RETURNING *',
-        [name, email]
-    );
+async function getUserWithRoles(userId: string): Promise<UserDto> {
+    const [user, roles] = await Promise.all([
+        coreApiClient.get<UserResponse>(`/api/users/${userId}`),
+        coreApiClient.get<RoleResponse[]>(`/api/users/${userId}/roles`)
+    ]);
 
-    return res.rows[0]; // Return the newly created user object
+    return {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        name: user.name,
+        roles: roles.map(r => r.name)
+    };
+}
+
+async function createUser(username: string, email: string, password: string): Promise<UserDto> {
+    const user = await coreApiClient.post<UserResponse>('/api/users', {
+        username,
+        email,
+        password
+    });
+
+    return {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        name: user.name,
+        roles: []
+    };
 }
 
 export const userService = {
     getUsers,
     getUserById,
     createUser,
-    getUserByLogin
+    getUserByLogin,
+    getUserWithRoles
 };

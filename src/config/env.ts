@@ -4,9 +4,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 export const ENV = {
-    API_PORT: Number(process.env.PORT ?? process.env.API_PORT ?? 5000),
-    CHAT_PORT: Number(process.env.CHAT_PORT ?? 5000),
-    NOTIFICATION_PORT: String(process.env.NOTIFICATION_PORT ?? 5000),
+    API_PORT: Number(process.env.PORT ?? process.env.API_PORT ?? 5001),
     CORS_ORIGIN: String(process.env.CORS_ORIGIN),
-    DATABASE_URL: String(process.env.DATABASE_URL)
+    CORE_API_URL: String(process.env.CORE_API_URL ?? 'http://localhost:5002')
 };

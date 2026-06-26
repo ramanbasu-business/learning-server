@@ -10,14 +10,13 @@ const userRouters = express_1.default.Router();
 // GET /api/users
 userRouters.get('/', async (request, response) => {
     try {
-        const users = await userService_1.userService.getUsers(); // ✅ await
-        return response.json(users); // ✅ pass users
+        const users = await userService_1.userService.getUsers();
+        return response.json(users);
     }
     catch (err) {
         console.error(err);
-        response.status(500).json({ error: "Failed to fetch users", err });
+        return response.status(500).json({ error: "Failed to fetch users", err });
     }
-    return null;
 });
 userRouters.post("/auth", async (request, response) => {
     try {
@@ -29,7 +28,7 @@ userRouters.post("/auth", async (request, response) => {
         if (!user) {
             return response.status(401).json({ error: "Invalid username or password" });
         }
-        return response.json({ message: "Login successful", user });
+        return response.json({ status: true, message: "Login successful", user });
     }
     catch (err) {
         console.error(err);

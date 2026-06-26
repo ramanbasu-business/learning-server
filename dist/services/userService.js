@@ -1,51 +1,76 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.userService = void 0;
-const db_1 = __importDefault(require("../db"));
-const bcryptjs_1 = __importDefault(require("bcryptjs"));
+const coreApiClient_1 = require("../clients/coreApiClient");
 async function getUsers() {
-    const result = await (0, db_1.default)('SELECT * FROM public.users');
-    return result.rows;
+    const users = await coreApiClient_1.coreApiClient.get('/api/users');
+    return users.map(user => ({
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        name: user.name,
+        roles: []
+    }));
 }
-// Login authentication
 async function getUserByLogin(username, password) {
-    let user = null;
     try {
-        const result = await (0, db_1.default)('SELECT * FROM public.users WHERE email = $1', [username]);
-        console.log('user found for:', username); // add this
-        if (!result || !result.rows.length) {
-            console.log('No user found for:', username); // add this
+        const user = await coreApiClient_1.coreApiClient.post('/api/users/auth', {
+            username,
+            password
+        });
+        if (!user) {
             return null;
         }
-        user = result.rows[0];
-        const password_hash = String(user["password_hash"]);
-        const isValid = bcryptjs_1.default.compareSync(password, password_hash);
-        console.log(`isValid Login  -> ${isValid}`);
-        if (!isValid)
-            return null;
+        const userWithRoles = await getUserWithRoles(user.id);
+        return userWithRoles;
     }
     catch (err) {
-        console.log(`Error Login: ${err}`);
+        console.error(`Error during login: ${err}`);
+        return null;
     }
-    console.log('user', user); // add this
-    return user;
 }
 async function getUserById(id) {
-    const result = await (0, db_1.default)('SELECT * FROM users WHERE id = $1', [id]);
-    return result.rows[0];
+    try {
+        const userWithRoles = await getUserWithRoles(id);
+        return userWithRoles;
+    }
+    catch (err) {
+        console.error(`Error fetching user: ${err}`);
+        return null;
+    }
 }
-// Create new user
-async function createUser(name, email) {
-    const res = await (0, db_1.default)('INSERT INTO users (name, email) VALUES ($1, $2) RETURNING *', [name, email]);
-    return res.rows[0]; // Return the newly created user object
+async function getUserWithRoles(userId) {
+    const [user, roles] = await Promise.all([
+        coreApiClient_1.coreApiClient.get(`/api/users/${userId}`),
+        coreApiClient_1.coreApiClient.get(`/api/users/${userId}/roles`)
+    ]);
+    return {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        name: user.name,
+        roles: roles.map(r => r.name)
+    };
+}
+async function createUser(username, email, password) {
+    const user = await coreApiClient_1.coreApiClient.post('/api/users', {
+        username,
+        email,
+        password
+    });
+    return {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        name: user.name,
+        roles: []
+    };
 }
 exports.userService = {
     getUsers,
     getUserById,
     createUser,
-    getUserByLogin
+    getUserByLogin,
+    getUserWithRoles
 };
 //# sourceMappingURL=userService.js.map
