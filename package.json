@@ -5,22 +5,25 @@
   "description": "serverside app",
   "main": "dist/index.js",
   "scripts": {
-    "dev": "ts-node -r tsconfig-paths/register src/index.ts",
-    "dev:https": "ts-node -r tsconfig-paths/register src/index.ts",
-    "build": "tsc",
-    "start": "node -r tsconfig-paths/register dist/index.js"
+    "dev": "npm run build && node -r tsconfig-paths/register --watch dist/index.js",
+    "build": "npm run tsoa:gen && tsc",
+    "start": "node -r tsconfig-paths/register dist/index.js",
+    "tsoa:gen": "tsoa spec-and-routes -c tsoa.config.json",
+    "fetch:core-api-spec": "node -e \"const fs=require('fs');const path='../learning-core-api/spec';fs.mkdirSync(path,{recursive:true});fetch(process.env.CORE_API_URL_OPENAPI||'http://localhost:5002/openapi/v1.json').then(r=>r.text()).then(t=>fs.writeFileSync(path+'/swagger.json',t))\"",
+    "generate:types": "npm run fetch:core-api-spec && openapi-typescript ../learning-core-api/spec/swagger.json -o src/types/core-api.generated.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "@learning/shared": "git+https://github.com/ramanbasu-business/learning-shared.git#develop",
     "axios": "^1.18.1",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "reflect-metadata": "^0.2.2",
     "socket.io": "^4.8.3",
+    "tsoa": "6.6.0",
     "ws": "^8.20.1"
   },
   "devDependencies": {
@@ -28,6 +31,7 @@
     "@types/express": "^5.0.6",
     "@types/node": "^25.9.3",
     "@types/ws": "^8.18.1",
+    "openapi-typescript": "^7.13.0",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "tsx": "^4.22.4",

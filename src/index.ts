@@ -1,9 +1,12 @@
+import "reflect-metadata";
 import express from "express";
 import http from "http";
 import cors from "cors";
 import { WebSocket, WebSocketServer } from "ws";
-import userRoutes from "./routes/userRoutes";
+import { ValidateError } from "tsoa";
+import { RegisterRoutes } from "./generated/routes";
 import { ENV } from "./config/env";
+import { ApiError } from "./errors/ApiError";
 
 const app = express();
 const server = http.createServer(app);
@@ -21,7 +24,25 @@ if (ENV.CORS_ORIGIN) {
 
 app.use(cors({ origin: corsOrigin, credentials: true }));
 app.use(express.json());
-app.use("/api/users", userRoutes);
+
+RegisterRoutes(app);
+
+app.use((err: unknown, _req: express.Request, res: express.Response, next: express.NextFunction) => {
+    if (err instanceof ApiError) {
+        res.status(err.status).json({ error: err.message });
+        return;
+    }
+    if (err instanceof ValidateError) {
+        res.status(400).json({ error: "Validation failed", fields: err.fields });
+        return;
+    }
+    if (err instanceof Error) {
+        console.error(err);
+        res.status(500).json({ error: "Internal server error" });
+        return;
+    }
+    next(err);
+});
 
 app.get("/api/hello", (_req: express.Request, res: express.Response) => {
     res.json({ message: "Hello from server!" });

@@ -1,1 +1,0 @@
-{"version":3,"file":"rabbit.d.ts","sourceRoot":"","sources":["../src/rabbit.ts"],"names":[],"mappings":"AACA,OAAO,EAAE,oBAAoB,EAAE,MAAM,kBAAkB,CAAC;AAoBxD,wBAAsB,oBAAoB,CAAC,OAAO,EAAE,oBAAoB,GAAG,OAAO,CAAC,IAAI,CAAC,CASvF;AAED,wBAAsB,qBAAqB,CACvC,OAAO,EAAE,CAAC,OAAO,EAAE,oBAAoB,KAAK,OAAO,CAAC,IAAI,CAAC,GAC1D,OAAO,CAAC,IAAI,CAAC,CAiBf"}

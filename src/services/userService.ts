@@ -52,7 +52,7 @@ async function getUserWithRoles(userId: string): Promise<UserDto> {
         username: user.username,
         email: user.email,
         name: user.name,
-        roles: roles.map(r => r.name)
+        roles
     };
 }
 

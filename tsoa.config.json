@@ -1,0 +1,15 @@
+{
+  "entryFile": "src/index.ts",
+  "noImplicitAdditionalProperties": "throw-on-extras",
+  "controllerPathGlobs": ["src/controllers/*.ts"],
+  "spec": {
+    "outputDirectory": "spec",
+    "specVersion": 3,
+    "name": "learning-server",
+    "description": "BFF API contract for learning-client"
+  },
+  "routes": {
+    "routesDir": "src/generated",
+    "basePath": "/api"
+  }
+}

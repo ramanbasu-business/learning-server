@@ -4,12 +4,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.wssNotification = exports.wssChat = void 0;
+require("reflect-metadata");
 const express_1 = __importDefault(require("express"));
 const http_1 = __importDefault(require("http"));
 const cors_1 = __importDefault(require("cors"));
 const ws_1 = require("ws");
-const userRoutes_1 = __importDefault(require("./routes/userRoutes"));
+const tsoa_1 = require("tsoa");
+const routes_1 = require("./generated/routes");
 const env_1 = require("./config/env");
+const ApiError_1 = require("./errors/ApiError");
 const app = (0, express_1.default)();
 const server = http_1.default.createServer(app);
 let corsOrigin = true;
@@ -26,7 +29,23 @@ if (env_1.ENV.CORS_ORIGIN) {
 }
 app.use((0, cors_1.default)({ origin: corsOrigin, credentials: true }));
 app.use(express_1.default.json());
-app.use("/api/users", userRoutes_1.default);
+(0, routes_1.RegisterRoutes)(app);
+app.use((err, _req, res, next) => {
+    if (err instanceof ApiError_1.ApiError) {
+        res.status(err.status).json({ error: err.message });
+        return;
+    }
+    if (err instanceof tsoa_1.ValidateError) {
+        res.status(400).json({ error: "Validation failed", fields: err.fields });
+        return;
+    }
+    if (err instanceof Error) {
+        console.error(err);
+        res.status(500).json({ error: "Internal server error" });
+        return;
+    }
+    next(err);
+});
 app.get("/api/hello", (_req, res) => {
     res.json({ message: "Hello from server!" });
 });

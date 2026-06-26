@@ -49,7 +49,7 @@ async function getUserWithRoles(userId) {
         username: user.username,
         email: user.email,
         name: user.name,
-        roles: roles.map(r => r.name)
+        roles
     };
 }
 async function createUser(username, email, password) {
